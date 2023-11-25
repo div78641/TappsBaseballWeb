@@ -1,0 +1,33 @@
+@page "/teams"
+@using TappsBaseballWeb.Data
+
+<PageTitle>Team List</PageTitle>
+
+<h1>Team List</h1>
+
+@if (participants == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <ul>
+        @foreach(var p in participants) 
+        {
+            <li><a href="team/@p.Id">@p.Name</a></li>
+        }
+    </ul>
+}
+
+@code 
+{
+    private List<Participant>? participants;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var jsonText = await
+        System.IO.File.ReadAllTextAsync($"{System.IO.Directory.GetCurrentDirectory()}{@"/wwwroot/TappsBaseballHistory.json"}");
+        participants = System.Text.Json.JsonSerializer.Deserialize<List<Participant>>(jsonText)
+            .OrderBy(p => p.Name).ToList();
+    }
+}

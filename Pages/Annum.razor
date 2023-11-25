@@ -1,0 +1,82 @@
+@page "/annum/{annumid}"
+@using TappsBaseballWeb.Data
+
+<PageTitle>Trophy Winners in @AnnumId</PageTitle>
+<h1>TAPPS State Tournament (@AnnumId)</h1>
+@if (PageHasDataToDisplay)
+{
+    <table class="table table-hover table-striped caption-top">
+        <caption><small>When division T is specified that indicates a season where all schools competed against each other regardless of size.</small></caption>
+        <thead>
+            <th scope="col" class="col-3">School</th>
+            <th scope="col" class="col-1 text-center">Place</th>
+            <th scope="col">Division</th>
+        </thead>
+        <tbody>
+            @foreach (var annumView in trohpyWinnersByAnnum!)
+            {
+                <tr>
+                    <td><a href="team/@annumView.SchoolId">@annumView.SchoolName</a></td>
+                    <td class="text-center">@((MarkupString)GetVisualForFinish(annumView.Finish))</td>
+                    <td><a href="divisio/@annumView.Division">@(GetDivisionText(@annumView.Division))</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No data found for the year @AnnumId .</p>
+}
+
+@code 
+{
+    [Parameter]
+    public string? AnnumId { get; set; }
+    private bool PageHasDataToDisplay = false;
+    private List<AnnumViewModel>? yearlyResults;
+    private List<AnnumViewModel>? trohpyWinnersByAnnum;
+    protected override async Task OnInitializedAsync()
+    {
+        var jsonText = await System.IO.File.ReadAllTextAsync($"{System.IO.Directory.GetCurrentDirectory()}{@"/wwwroot/TappsBaseballHistoryByYear.json"}");
+        yearlyResults = System.Text.Json.JsonSerializer.Deserialize<List<AnnumViewModel>>(jsonText);
+
+        if (AnnumId != null && yearlyResults != null)
+        {
+            trohpyWinnersByAnnum = yearlyResults.Where(avm => avm.SeasonYear == AnnumId)
+                .OrderBy(avm => avm.Division)
+                .ThenBy(avm => (int)avm.Finish)
+                .ToList();
+
+            PageHasDataToDisplay = trohpyWinnersByAnnum.Count > 0;
+        }
+    }
+
+    private string GetDivisionText(string? division) 
+    {
+        if (division != null)
+        {
+            return (division == "1a2a") ? "1A/2A" : division.ToUpper();
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+    private string GetVisualForFinish(Places finish)
+    {
+        switch (finish)
+        {
+            case Places.First:
+                return "<i class='fa-solid fa-trophy' title='Champion' style='color:gold;'></i>";
+            case Places.Second:
+                return "<i class='fa-solid fa-medal' title='Runner Up' style='color:silver;'></i>";
+            case Places.Third:
+                return "<i class='fa-solid fa-medal' title='3rd Place' style='color:#c96;'></i>";
+            case Places.Fourth:
+                return "<i class='fa-solid fa-award' title='4th Place'></i>";
+            default:
+                return string.Empty;
+        }
+    }
+}

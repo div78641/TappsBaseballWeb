@@ -1,0 +1,281 @@
+﻿@page "/"
+@using TappsBaseballWeb.Data
+
+<PageTitle>TAPPS Baseball Champions</PageTitle>
+
+<h1>TAPPS Baseball Champions (1979 to present)</h1>
+@if (participants == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped table-hover caption-top">
+    <caption><small>First through fourth-place, where available, finishers in the TAPPS State Baseball Tournament since its inception in 1979.  Years with division T specified are for years where all schools competed against each other regardless of size. TAPPS stopped contesting a third-place game after 1986.</small></caption>
+    <thead>
+        <tr>
+            <th class="@(GetColumnSelectedStyle("Team"))">Team <i class="@(GetSortStyle("Team"))" onclick="@(() => SortTable("Team"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("Championships"))">Championships <i class="@(GetSortStyle("Championships"))" onclick="@(() => SortTable("Championships"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("2ndPlace"))">2nd Place <i class="@(GetSortStyle("2ndPlace"))"
+                    onclick="@(() => SortTable("2ndPlace"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("3rdPlace"))">3rd Place <i class="@(GetSortStyle("3rdPlace"))"
+                    onclick="@(() => SortTable("3rdPlace"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("4thPlace"))">4th Place <i class="@(GetSortStyle("4thPlace"))"
+                    onclick="@(() => SortTable("4thPlace"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("Total")) text-center">Total <i class="@(GetSortStyle("Total"))" onclick="@(() => SortTable("Total"))"></i></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var participant in participants)
+            {
+                <tr>
+                    <td class="@(GetColumnSelectedStyle("Team"))"><a href="team/@participant.Id">@participant.Name</a></td>
+                    <td class="@(GetColumnSelectedStyle("Championships"))">@participant.TrophyCase?.FirstPlaceFinishes?.Total <small class="fw-lighter">@((MarkupString)GetChampionshipYears(@participant.TrophyCase?.FirstPlaceFinishes))</small></td>
+                    <td class="@(GetColumnSelectedStyle("2ndPlace"))">@participant.TrophyCase?.SecondPlaceFinishes?.Total <small class="fw-lighter">@((MarkupString)Get2ndPlaceYears(@participant.TrophyCase?.SecondPlaceFinishes))</small></td>
+                    <td class="@(GetColumnSelectedStyle("3rdPlace"))">@participant.TrophyCase?.ThirdPlaceFinishes?.Total <small class="fw-lighter">@((MarkupString)Get3rdPlaceYears(@participant.TrophyCase?.ThirdPlaceFinishes))</small></td>
+                    <td class="@(GetColumnSelectedStyle("4thPlace"))">@participant.TrophyCase?.FourthPlaceFinishes?.Total <small class="fw-lighter">@((MarkupString)Get4thPlaceYears(@participant.TrophyCase?.FourthPlaceFinishes))</small></td>
+                    <td class="@(GetColumnSelectedStyle("Total")) text-center">@(GetAppearanceTotal(@participant))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    private List<Participant>? participants;
+    //We need a field to tell us which direction the table is currently sorted by
+    private bool IsSortedAscending;
+
+    //We also need a field to tell us which column the table is sorted by.
+    private string CurrentSortColumn = string.Empty;
+    private void SortTable(string columnName)
+    {
+        //Sorting against a column that is not currently sorted against.
+        if (columnName != CurrentSortColumn)
+        {
+            switch (columnName)
+            {
+                case "Team":
+                    participants = participants?.OrderBy(p => p.Name).ToList();
+                    break;
+                case "Championships":
+                    participants = participants?.OrderByDescending(p => p.TrophyCase?.FirstPlaceFinishes?.Total).ToList();
+                    break;
+                case "2ndPlace":
+                    participants = participants?.OrderByDescending(p => p.TrophyCase?.SecondPlaceFinishes?.Total).ToList();
+                    break;
+                case "3rdPlace":
+                    participants = participants?.OrderByDescending(p => p.TrophyCase?.ThirdPlaceFinishes?.Total).ToList();
+                    break;
+                case "4thPlace":
+                    participants = participants?.OrderByDescending(p => p.TrophyCase?.FourthPlaceFinishes?.Total).ToList();
+                    break;
+                case "Total":
+                    participants = participants?.OrderByDescending(p => p.TrophyCase?.FourthPlaceFinishes?.Total + p.TrophyCase?.ThirdPlaceFinishes?.Total + p.TrophyCase?.SecondPlaceFinishes?.Total + p.TrophyCase?.FirstPlaceFinishes?.Total).ToList();
+                    break;
+            }
+            CurrentSortColumn = columnName;
+            IsSortedAscending = true;
+
+        }
+        else //Sorting against same column but in different direction
+        {
+            if (IsSortedAscending)
+            {
+                switch (columnName)
+                {
+                    case "Team":
+                        participants = participants?.OrderByDescending(p => p.Name).ToList();
+                        break;
+                    case "Championships":
+                        participants = participants?.OrderBy(p => p.TrophyCase?.FirstPlaceFinishes?.Total).ToList();
+                        break;
+                    case "2ndPlace":
+                        participants = participants?.OrderBy(p => p.TrophyCase?.SecondPlaceFinishes?.Total).ToList();
+                        break;
+                    case "3rdPlace":
+                        participants = participants?.OrderBy(p => p.TrophyCase?.ThirdPlaceFinishes?.Total).ToList();
+                        break;
+                    case "4thPlace":
+                        participants = participants?.OrderBy(p => p.TrophyCase?.FourthPlaceFinishes?.Total).ToList();
+                        break;
+                    case "Total":
+                        participants = participants?.OrderBy(p => p.TrophyCase?.FourthPlaceFinishes?.Total + p.TrophyCase?.ThirdPlaceFinishes?.Total + p.TrophyCase?.SecondPlaceFinishes?.Total + p.TrophyCase?.FirstPlaceFinishes?.Total).ToList();
+                        break;
+                }
+            }
+            else
+            {
+                switch (columnName)
+                {
+                    case "Team":
+                        participants = participants?.OrderBy(p => p.Name).ToList();
+                        break;
+                    case "Championships":
+                        participants = participants?.OrderByDescending(p => p.TrophyCase?.FirstPlaceFinishes?.Total).ToList();
+                        break;
+                    case "2ndPlace":
+                        participants = participants?.OrderByDescending(p => p.TrophyCase?.SecondPlaceFinishes?.Total).ToList();
+                        break;
+                    case "3rdPlace":
+                        participants = participants?.OrderByDescending(p => p.TrophyCase?.ThirdPlaceFinishes?.Total).ToList();
+                        break;
+                    case "4thPlace":
+                        participants = participants?.OrderByDescending(p => p.TrophyCase?.FourthPlaceFinishes?.Total).ToList();
+                        break;
+                    case "Total":
+                        participants = participants?.OrderByDescending(p => p.TrophyCase?.FourthPlaceFinishes?.Total + p.TrophyCase?.ThirdPlaceFinishes?.Total + p.TrophyCase?.SecondPlaceFinishes?.Total + p.TrophyCase?.FirstPlaceFinishes?.Total).ToList();
+                        break;
+                }
+            }
+
+            //Toggle this boolean
+            IsSortedAscending = !IsSortedAscending;
+        }
+    }
+    private string GetSortStyle(string columnName)
+    {
+        if (CurrentSortColumn != columnName)
+        {
+            return "fa-solid fa-sort";
+        }
+        switch (columnName)
+        {
+            case "Team":
+                if (IsSortedAscending) { return "fa-solid fa-arrow-down-a-z"; }
+                else { return "fa-solid fa-arrow-up-z-a"; }
+            default:
+                if (IsSortedAscending) { return "fa-solid fa-arrow-down-9-1"; }
+                else { return "fa-solid fa-arrow-up-1-9"; }
+        }
+    }
+
+    private string GetAppearanceTotal(Participant participant)
+    {
+        if (participant != null) 
+        {
+            var firsts = participant.TrophyCase?.FirstPlaceFinishes?.Total ?? 0;
+            var seconds = participant.TrophyCase?.SecondPlaceFinishes?.Total ?? 0;
+            var thirds = participant.TrophyCase?.ThirdPlaceFinishes?.Total ?? 0;
+            var fourths = participant.TrophyCase?.FourthPlaceFinishes?.Total ?? 0;
+
+            return (firsts + seconds + thirds + fourths).ToString();
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string GetChampionshipYears(FirstPlace? firstPlaceFinishes)
+    {
+        if (firstPlaceFinishes != null)
+        {
+            if (firstPlaceFinishes.Stockpile != null)
+            {
+                return ReturnCommaSeparatedString(firstPlaceFinishes.Stockpile);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string Get2ndPlaceYears(SecondPlace? secondPlaceFinishes)
+    {
+        if (secondPlaceFinishes != null)
+        {
+            if (secondPlaceFinishes.Stockpile != null)
+            {
+                return ReturnCommaSeparatedString(secondPlaceFinishes.Stockpile);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string Get3rdPlaceYears(ThirdPlace? thirdPlaceFinishes)
+    {
+        if (thirdPlaceFinishes != null)
+        {
+            if (thirdPlaceFinishes.Stockpile != null)
+            {
+                return ReturnCommaSeparatedString(thirdPlaceFinishes.Stockpile);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string Get4thPlaceYears(FourthPlace? fourthPlaceFinishes)
+    {
+        if (fourthPlaceFinishes != null)
+        {
+            if (fourthPlaceFinishes.Stockpile != null)
+            {
+                return ReturnCommaSeparatedString(fourthPlaceFinishes.Stockpile);
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string ReturnCommaSeparatedString(List<Year> years)
+    {
+        int yearCount = 1;
+        years = years.OrderByDescending(y => y.ID).ToList();
+        System.Text.StringBuilder sb = new();
+        if (years.Count > 0) { sb.Append("("); }
+        foreach (var year in years)
+        {
+            var divisionDisplay = (year.Division == "1a2a") ? "1A/2A" : year.Division.ToUpper();
+            sb.Append($"<a href='annum/{year.ID}'>{year.ID}</a> [<a href='divisio/{year.Division}'>{divisionDisplay}</a>]");
+            if (yearCount < years.Count)
+            {
+                sb.Append(", ");
+            }
+            yearCount += 1;
+        }
+        if (years.Count > 0) { sb.Append(")"); }
+        return sb.ToString();
+    }
+    private string GetColumnSelectedStyle(string columnName)
+    {
+        if (CurrentSortColumn != columnName)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            return "table-warning";
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var jsonText = await
+        System.IO.File.ReadAllTextAsync($"{System.IO.Directory.GetCurrentDirectory()}{@"/wwwroot/TappsBaseballHistory.json"}");
+        participants = System.Text.Json.JsonSerializer.Deserialize<List<Participant>>(jsonText);
+    }
+}

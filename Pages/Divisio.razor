@@ -1,0 +1,218 @@
+@page "/divisio/{divisioid}"
+@using TappsBaseballWeb.Data
+
+<PageTitle>TAPPS @DisplayId State Tournament Trophy Winners</PageTitle>
+<h1>TAPPS (@DisplayId) State Tournament</h1>
+@if (PageHasDataToDisplay)
+{
+    <table class="table table-striped table-hover caption-top">
+    <caption><small>First through fourth-place, where applicable, finishers in the TAPPS @DisplayId State Baseball Tournament since its inception in 1979. The division T represents years where all schools competed against each other regardless of size. TAPPS stopped contesting a 3rd-place game after 1986.</small></caption>
+    <thead>
+        <tr>
+            <th class="@(GetColumnSelectedStyle("Team"))">Team <i class="@(GetSortStyle("Team"))"
+                    onclick="@(() => SortTable("Team"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("Championships"))">Championships <i
+                    class="@(GetSortStyle("Championships"))" onclick="@(() => SortTable("Championships"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("2ndPlace"))">2nd Place <i class="@(GetSortStyle("2ndPlace"))"
+                    onclick="@(() => SortTable("2ndPlace"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("3rdPlace"))">3rd Place <i class="@(GetSortStyle("3rdPlace"))"
+                    onclick="@(() => SortTable("3rdPlace"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("4thPlace"))">4th Place <i class="@(GetSortStyle("4thPlace"))"
+                    onclick="@(() => SortTable("4thPlace"))"></i></th>
+            <th class="@(GetColumnSelectedStyle("Total")) text-center">Total <i class="@(GetSortStyle("Total"))"
+                    onclick="@(() => SortTable("Total"))"></i></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var scholae in trohpyWinners!)
+            {
+                <tr>
+                    <td class="@(GetColumnSelectedStyle("Team"))"><a href="team/@scholae.SchoolId">@scholae.SchoolName</a></td>
+                    <td class="@(GetColumnSelectedStyle("Championships"))">@scholae.Championships <small class="fw-lighter">@((MarkupString)GetMarkedUpYears(@scholae.ChampionshipYears))</small></td>
+                    <td class="@(GetColumnSelectedStyle("2ndPlace"))">@scholae.SecondPlaceFinishes <small class="fw-lighter">@((MarkupString)GetMarkedUpYears(@scholae.SecondPlaceYears))</small></td>
+                    <td class="@(GetColumnSelectedStyle("3rdPlace"))">@scholae.ThirdPlaceFinishes <small class="fw-lighter">@((MarkupString)GetMarkedUpYears(@scholae.ThirdPlaceYears))</small></td>
+                    <td class="@(GetColumnSelectedStyle("4thPlace"))">@scholae.FourthPlaceFinishes <small class="fw-lighter">@((MarkupString)GetMarkedUpYears(@scholae.FourthPlaceYears))</small></td>
+                    <td class="@(GetColumnSelectedStyle("Total")) text-center">@scholae.TotalTrophies</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No data found for the @DivisioId division.</p>
+}
+
+@code
+{
+    [Parameter]
+    public string? DivisioId { get; set; }
+    private string? DisplayId;
+    private bool PageHasDataToDisplay = false;
+    private List<DivisionHistory>? divisions;
+    private DivisionHistory? division;
+    private List<DivisionParticipant>? trohpyWinners;
+    private bool IsSortedAscending;
+    private string CurrentSortColumn = string.Empty;
+    private void SortTable(string columnName)
+    {
+        //Sorting against a column that is not currently sorted against.
+        if (columnName != CurrentSortColumn)
+        {
+            switch (columnName)
+            {
+                case "Team":
+                    trohpyWinners = trohpyWinners?.OrderBy(dp => dp.SchoolName).ToList();
+                    break;
+                case "Championships":
+                    trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.Championships).ToList();
+                    break;
+                case "2ndPlace":
+                    trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.SecondPlaceFinishes).ToList();
+                    break;
+                case "3rdPlace":
+                    trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.ThirdPlaceFinishes).ToList();
+                    break;
+                case "4thPlace":
+                    trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.FourthPlaceFinishes).ToList();
+                    break;
+                case "Total":
+                    trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.TotalTrophies).ToList();
+                    break;
+            }
+            CurrentSortColumn = columnName;
+            IsSortedAscending = true;
+
+        }
+        else //Sorting against same column but in different direction
+        {
+            if (IsSortedAscending)
+            {
+                switch (columnName)
+                {
+                    case "Team":
+                        trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.SchoolName).ToList();
+                        break;
+                    case "Championships":
+                        trohpyWinners = trohpyWinners?.OrderBy(dp => dp.Championships).ToList();
+                        break;
+                    case "2ndPlace":
+                        trohpyWinners = trohpyWinners?.OrderBy(dp => dp.SecondPlaceFinishes).ToList();
+                        break;
+                    case "3rdPlace":
+                        trohpyWinners = trohpyWinners?.OrderBy(dp => dp.ThirdPlaceFinishes).ToList();
+                        break;
+                    case "4thPlace":
+                        trohpyWinners = trohpyWinners?.OrderBy(dp => dp.FourthPlaceFinishes).ToList();
+                        break;
+                    case "Total":
+                        trohpyWinners = trohpyWinners?.OrderBy(dp => dp.TotalTrophies).ToList();
+                        break;
+                }
+            }
+            else
+            {
+                switch (columnName)
+                {
+                    case "Team":
+                        trohpyWinners = trohpyWinners?.OrderBy(dp => dp.SchoolName).ToList();
+                        break;
+                    case "Championships":
+                        trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.Championships).ToList();
+                        break;
+                    case "2ndPlace":
+                        trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.SecondPlaceFinishes).ToList();
+                        break;
+                    case "3rdPlace":
+                        trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.ThirdPlaceFinishes).ToList();
+                        break;
+                    case "4thPlace":
+                        trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.FourthPlaceFinishes).ToList();
+                        break;
+                    case "Total":
+                        trohpyWinners = trohpyWinners?.OrderByDescending(dp => dp.TotalTrophies).ToList();
+                        break;
+                }
+            }
+
+            //Toggle this boolean
+            IsSortedAscending = !IsSortedAscending;
+        }
+    }
+    private string GetSortStyle(string columnName)
+    {
+        if (CurrentSortColumn != columnName)
+        {
+            return "fa-solid fa-sort";
+        }
+        switch (columnName)
+        {
+            case "Team":
+                if (IsSortedAscending) { return "fa-solid fa-arrow-down-a-z"; }
+                else { return "fa-solid fa-arrow-up-z-a"; }
+            default:
+                if (IsSortedAscending) { return "fa-solid fa-arrow-down-9-1"; }
+                else { return "fa-solid fa-arrow-up-1-9"; }
+        }
+    }
+
+    private string GetColumnSelectedStyle(string columnName)
+    {
+        if (CurrentSortColumn != columnName)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            return "table-warning";
+        }
+    }
+
+    private string GetMarkedUpYears(List<string>? trophyYears)
+    {
+        if (trophyYears != null)
+        {
+            if (trophyYears.Count > 0)
+            {
+                trophyYears = trophyYears.OrderByDescending(ty => ty).ToList();
+                int yearCount = 1;
+                System.Text.StringBuilder sb = new();
+                sb.Append("(");
+                foreach(var trophyYear in trophyYears)
+                {
+                    sb.Append($"<a href='annum/{trophyYear}'>{trophyYear}</a>");
+                    if (yearCount < trophyYears.Count)
+                    {
+                        sb.Append(", ");
+                    }
+                    yearCount += 1;
+                }
+                sb.Append(")");
+                return sb.ToString();
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        var jsonText = await
+        System.IO.File.ReadAllTextAsync($"{System.IO.Directory.GetCurrentDirectory()}{@"/wwwroot/TappsBaseballHistoryByDivision.json"}");
+        divisions = System.Text.Json.JsonSerializer.Deserialize<List<DivisionHistory>>(jsonText);
+
+        if (DivisioId != null && divisions != null)
+        {
+            DisplayId = (DivisioId == "1a2a") ? "1A/2A" : DivisioId.ToUpper();
+            division = divisions.Where(dh => dh.DivisionId == DivisioId).FirstOrDefault();
+            trohpyWinners = division?.DivisionWinners;
+
+            PageHasDataToDisplay = trohpyWinners?.Count > 0;
+        }
+    }
+}

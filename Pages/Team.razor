@@ -1,0 +1,163 @@
+@page "/team/{teamid}"
+@using TappsBaseballWeb.Data
+
+@if (participant != null)
+{
+    <PageTitle>Team History: @participant.Name</PageTitle>
+    <h1>Team History: @participant.Name</h1>
+    <table class="table table-striped table-hover">
+        <caption><small>Years with division T specified are for years where all schools competed against each other regardless of size.</small></caption>
+        <thead>
+            <th scope="col" class="col-2">Place</th>
+            <th scope="col" class="col-1 text-center">Total</th>
+            <th scope="col" class="col-9">Years (Division)</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Championships <i class="fa-solid fa-trophy" style="color:gold"></i></td>
+                <td class="text-center">@(GetTotal(@participant, @Places.First))</td>
+                <td>@((MarkupString)GetYears(@participant, @Places.First))</td>
+            </tr>
+            <tr>
+                <td>2nd Place <i class="fa-solid fa-medal" style="color: silver"></i></td>
+                <td class="text-center">@(GetTotal(@participant, @Places.Second))</td>
+                <td>@((MarkupString)GetYears(@participant, @Places.Second))</td>
+            </tr>
+            <tr>
+                <td>3rd Place <i class="fa-solid fa-medal" style="color: #c96;"></i></td>
+                <td class="text-center">@(GetTotal(@participant, @Places.Third))</td>
+                <td>@((MarkupString)GetYears(@participant, @Places.Third))</td>
+            </tr>
+            <tr>
+                <td>4th Place <i class="fa-solid fa-award"></i></td>
+                <td class="text-center">@(GetTotal(@participant, @Places.Fourth))</td>
+                <td>@((MarkupString)GetYears(@participant, @Places.Fourth))</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <td>&nbsp;</td>
+            <td class="text-center fw-bold">@(GetTotalTrophies(@participant))</td>
+            <td>&nbsp;</td>
+        </tfoot>
+    </table>
+}
+else 
+{
+    <PageTitle>Team Unknown</PageTitle>
+    <h1>Team History: Unknown</h1>
+}
+
+@code
+{
+    [Parameter]
+    public string? TeamId { get; set; }
+
+    private List<Participant>? participants;
+    private Participant? participant;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var jsonText = await
+        System.IO.File.ReadAllTextAsync($"{System.IO.Directory.GetCurrentDirectory()}{@"/wwwroot/TappsBaseballHistory.json"}");
+        participants = System.Text.Json.JsonSerializer.Deserialize<List<Participant>>(jsonText);
+
+        if (TeamId != null && participants != null)
+        {
+            participant = participants.SingleOrDefault(p => p.Id == TeamId);
+        }
+    }
+
+    private string? GetTotalTrophies(Participant participant)
+    {
+        if (participant != null)
+        {
+            var firsts = participant.TrophyCase?.FirstPlaceFinishes?.Total ?? 0;
+            var seconds = participant.TrophyCase?.SecondPlaceFinishes?.Total ?? 0;
+            var thirds = participant.TrophyCase?.ThirdPlaceFinishes?.Total ?? 0;
+            var fourths = participant.TrophyCase?.FourthPlaceFinishes?.Total ?? 0;
+
+            return (firsts + seconds + thirds + fourths).ToString();
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+    private string? GetTotal(Participant participant, Places place)
+    {
+        if (participant != null) 
+        {
+            switch(place){
+                case Places.First:
+                    return participant.TrophyCase?.FirstPlaceFinishes?.Total.ToString() ?? string.Empty;
+                case Places.Second:
+                    return participant.TrophyCase?.SecondPlaceFinishes?.Total.ToString() ?? string.Empty;
+                case Places.Third:
+                    return participant.TrophyCase?.ThirdPlaceFinishes?.Total.ToString() ?? string.Empty;
+                case Places.Fourth:
+                    return participant.TrophyCase?.FourthPlaceFinishes?.Total.ToString() ?? string.Empty;
+                default:
+                    return "0";
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string? GetYears(Participant participant, Places place)
+    {
+        if (participant != null) 
+        {
+            if (participant.TrophyCase != null)
+            {
+                switch(place)
+                {
+                    case Places.First:
+                        return ReturnCommaSeparatedString(participant.TrophyCase.FirstPlaceFinishes?.Stockpile);
+                    case Places.Second:
+                        return ReturnCommaSeparatedString(participant.TrophyCase.SecondPlaceFinishes?.Stockpile);
+                    case Places.Third:
+                        return ReturnCommaSeparatedString(participant.TrophyCase.ThirdPlaceFinishes?.Stockpile);
+                    case Places.Fourth:
+                        return ReturnCommaSeparatedString(participant.TrophyCase.FourthPlaceFinishes?.Stockpile);
+                    default:
+                        return string.Empty;
+                }
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+    private string ReturnCommaSeparatedString(List<Year> years)
+    {
+        if (years != null)
+        {
+            years = years.OrderByDescending(y => y.ID).ToList();
+            int yearCount = 1;
+            System.Text.StringBuilder sb = new();
+            foreach (var year in years)
+            {
+                var divisionDisplay = (year.Division == "1a2a") ? "1A/2A" : year.Division.ToUpper();
+                sb.Append($"<a href='annum/{year.ID}'>{year.ID}</a> [<a href='divisio/{year.Division}'>{divisionDisplay}</a>]");
+                if (yearCount < years.Count)
+                {
+                    sb.Append(", ");
+                }
+                yearCount += 1;
+            }
+            return sb.ToString();
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+}
